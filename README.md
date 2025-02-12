@@ -7,7 +7,7 @@
 <div align="center">
 
   <a href="https://www.linux.org" target="_blank"><img src="https://img.shields.io/badge/OS-Linux-e06c75?style=for-the-badge&logo=linux" /></a>
-	<a href="https://archlinux.org" target="_blank"><img src="https://img.shields.io/badge/DISTRO-Ubuntu-E95420?style=for-the-badge&logo=Ubuntu" /></a>
+	<a href="https://ubuntu.com/" target="_blank"><img src="https://img.shields.io/badge/DISTRO-Ubuntu-E95420?style=for-the-badge&logo=Ubuntu" /></a>
   </a>
   <a href="https://chat.deepseek.com/" target="_blank">
   <img src="https://img.shields.io/badge/Built_Using-DeepSeek-4D6BFE?style=for-the-badge&logo=deepseek&logoColor=4D6BFE" alt="Built Using DeepSeek">
@@ -32,15 +32,8 @@
 [![GitHub Sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&label=claudemods&color=A836FF&logo=GitHub-Sponsors&logoColor=#white)](https://github.com/sponsors/claudemods)</div>
 
 <div align="center">
-claudemodss Ubuntu ISO Creator AppImage v2.0 Beta build 26-01-2025 Written in Cpp,
+Apex Bootable Usb Creator Appimage
 	<div align="center">
-Sailing the 7 seas like Penguin's Eggs Remastersys, Refracta, Systemback and father Knoppix!
-<div align="center">
-Clone Your Ubuntu System At Ease
-<div align="center">
-more info on releases
-
-
 
 
 
@@ -58,3 +51,5 @@ more info on releases
 <div align="center">
 
 </div>
+
+![2025-02-12-101712_hyprshot](https://github.com/user-attachments/assets/49f414d0-6e41-4b11-84c7-b6ae1f670a98)
