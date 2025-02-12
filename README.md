@@ -32,7 +32,7 @@
 [![GitHub Sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&label=claudemods&color=A836FF&logo=GitHub-Sponsors&logoColor=#white)](https://github.com/sponsors/claudemods)</div>
 
 <div align="center">
-Apex Bootable Usb Creator Appimage
+
 	<div align="center">
 
 
@@ -52,4 +52,4 @@ Apex Bootable Usb Creator Appimage
 
 </div>
 
-![2025-02-12-101712_hyprshot](https://github.com/user-attachments/assets/49f414d0-6e41-4b11-84c7-b6ae1f670a98)
+
