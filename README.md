@@ -5,7 +5,7 @@
 	<img width="150" src="https://i.postimg.cc/cHj9PDT7/burn.png" alt="logo">
 	</p>
 <div align="center">
- <a href="https://www.rockstargames.com/" target="_blank"><img src="https://img.shields.io/badge/Gta-Mods-e06c75?style=for-the-badge&logo=games" /></a>
+
 
 <div align="center">
 
