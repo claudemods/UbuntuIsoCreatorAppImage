@@ -36,7 +36,7 @@
 
 <div align="center">
 
-	<div align="center">
+this project is going open source 
 
 
 
