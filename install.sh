@@ -26,16 +26,16 @@ echo -e "\e[38;2;36;255;255mInitializing setup...\e[0m"
 loading_bar 3.7
 
 # Clone Repo
-git clone https://github.com/claudemods/UbuntuIsoCreatorAppImage.git || { 
+git clone https://github.com/claudemods/UbuntuIsoCreatorAppImage.git || {
     echo -e "\e[31mFailed to clone repo!\e[0m"
     exit 1
 }
 
 # Compile Components (YOUR EXACT COMMANDS)
-cd UbuntuIsoCreatorAppImage/cscript/MainApp && make || exit 1
-cd UbuntuIsoCreatorAppImage/cscript/SetupScript && make || exit 1
-cd UbuntuIsoCreatorAppImage/cscript/isocreator && make || exit 1
-cd UbuntuIsoCreatorAppImage/cscript/SquashfsCreator && make || exit 1
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/SetupScript && make && cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/isocreator/noble/ && make && cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/SquashfsCreator/Noble+Oracular && make
+
+
+
 
 # User input for build type
 while true; do
@@ -62,23 +62,19 @@ else
     exit 1
 fi
 
-# COPY ONLY COMPILED FILES (not the whole cscript directory)
-echo -e "\e[38;2;36;255;255mCopying compiled binaries...\e[0m"
-mkdir -p /home/$USER/.config/cui || {
-    echo -e "\e[31mFailed to create /home/$USER/.config/cui!\e[0m"
-    exit 1
-}
-
+# Copy compiled files
 # Copy each compiled executable individually
-cp UbuntuIsoCreatorAppImage/cscript/MainApp/mainapp /home/$USER/.config/cui/ || cp_failed=1
-cp UbuntuIsoCreatorAppImage/cscript/SetupScript/setupscript /home/$USER/.config/cui/ || cp_failed=1
-cp UbuntuIsoCreatorAppImage/cscript/isocreator/isocreator /home/$USER/.config/cui/ || cp_failed=1
-cp UbuntuIsoCreatorAppImage/cscript/SquashfsCreator/squashfscreator /home/$USER/.config/cui/ || cp_failed=1
+cp UbuntuIsoCreatorAppImage/cscript/MainApp/mainapp.bin /home/$USER/.config/cui/
+cp UbuntuIsoCreatorAppImage/cscript/SetupScript/Noble+Oracular/ubuntusetupscript.bin /home/$USER/.config/cui/ || cp_failed=1
+cp UbuntuIsoCreatorAppImage/cscript/isocreator/noble/ubuntuisocreator.bin /home/$USER/.config/cui/ || cp_failed=1
+cp UbuntuIsoCreatorAppImage/cscript/SquashfsCreator/Noble+Oracular/ubuntusquashfscreator.bin /home/$USER/.config/cui/ || cp_failed=1
 
 if [ "$cp_failed" = 1 ]; then
     echo -e "\e[31mFailed to copy one or more compiled files!\e[0m"
     exit 1
 fi
+
+echo -e "\e[1;32mInstallation completed successfully!\e[0m"
 
 echo -e "\e[1;32mInstallation completed successfully!\e[0m"
 sudo cp UbuntuIsoCreatorAppImage/cscript/cui.desktop /usr/share/applications
