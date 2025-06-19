@@ -8,22 +8,26 @@
 #define PATH_MAX 4096
 #define COMMAND_MAX 8192
 
+// ANSI Color Codes
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
 #define YELLOW  "\x1b[33m"
 #define BLUE    "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN    "\x1b[36m"
 #define RESET   "\x1b[0m"
 
 // Function prototypes
-void print_menu_header(const char *version);
-void print_main_menu();
+void main_menu();
+void print_dark_red(const char *text);
+void print_version_menu(const char *version);
 void print_action_menu(const char *version);
-void run_command(const char *command);
+int run_command(const char *command);
 void copy_vmlinuz(const char *version);
 void generate_initrd(const char *version);
 void edit_grub_cfg(const char *version);
 void edit_isolinux_cfg(const char *version);
-void install_dependencies(void);
+void install_dependencies();
 void clear_screen();
 
 int main() {
@@ -32,7 +36,13 @@ int main() {
     
     while (1) {
         clear_screen();
-        print_main_menu();
+        main_menu();
+        print_dark_red("Choose your Ubuntu version:");
+        print_dark_red("1. Noble 24.04");
+        print_dark_red("2. Oracular 24.10");
+        print_dark_red("3. Exit");
+        printf("Select: ");
+        
         fgets(input, sizeof(input), stdin);
         choice = atoi(input);
         
@@ -42,8 +52,11 @@ int main() {
         
         while (1) {
             clear_screen();
-            print_menu_header(version);
+            main_menu();
+            print_version_menu(version);
             print_action_menu(version);
+            printf("Select action: ");
+            
             fgets(input, sizeof(input), stdin);
             int action = atoi(input);
             
@@ -55,45 +68,55 @@ int main() {
                 case 3: generate_initrd(version); break;
                 case 4: edit_grub_cfg(version); break;
                 case 5: edit_isolinux_cfg(version); break;
-                default: printf("Invalid choice\n");
+                default: print_dark_red("Invalid choice");
             }
-            printf("\nPress Enter to continue...");
+            printf(CYAN "\nPress Enter to continue..." RESET);
             getchar();
         }
     }
     return 0;
 }
 
-void print_menu_header(const char *version) {
-    printf(RED "\nUbuntu %s ISO Configurator\n" RESET, 
-           strcmp(version, "noble") == 0 ? "Noble 24.04" : "Oracular 24.10");
+void main_menu() {
+    printf(RED
+    "░█████╗░██╗░░░░░░█████╗░██╗░░░██╗██████╗░███████╗███╗░░░███╗░█████╗░██████╗░░██████╗\n"
+    "██╔══██╗██║░░░░░██╔══██╗██║░░░██║██╔══██╗██╔════╝████╗░████║██╔══██╗██╔══██╗██╔════╝\n"
+    "██║░░╚═╝██║░░░░░███████║██║░░░██║██║░░██║█████╗░░██╔████╔██║██║░░██║██║░░██║╚█████╗░\n"
+    "██║░░██╗██║░░░░░██╔══██║██║░░░██║██║░░██║██╔══╝░░██║╚██╔╝██║██║░░██║██║░░██║░╚═══██╗\n"
+    "╚█████╔╝███████╗██║░░██║╚██████╔╝██████╔╝███████╗██║░╚═╝░██║╚█████╔╝██████╔╝██████╔╝\n"
+    "░╚════╝░╚══════╝╚═╝░░╚═╝░╚═════╝░╚═════╝░╚══════╝╚═╝░░░░░╚═╝░╚════╝░╚═════╝░╚═════╝░\n"
+    RESET
+    "claudemods iso configurator v1.01\n");
 }
 
-void print_main_menu() {
-    printf(RED "\nMAIN MENU\n" RESET);
-    printf("1. Noble 24.04\n");
-    printf("2. Oracular 24.10\n");
-    printf("3. Exit\n");
-    printf("Select version: ");
+void print_dark_red(const char *text) {
+    printf(RED "%s" RESET "\n", text);
+}
+
+void print_version_menu(const char *version) {
+    printf(MAGENTA "\n╔══════════════════════════════════════════╗\n" RESET);
+    printf(MAGENTA "║" RESET "  Ubuntu %s ISO Configuration  " MAGENTA "║\n" RESET,
+           strcmp(version, "noble") == 0 ? "Noble 24.04" : "Oracular 24.10");
+    printf(MAGENTA "╚══════════════════════════════════════════╝\n\n" RESET);
 }
 
 void print_action_menu(const char *version) {
-    printf("\nACTIONS:\n");
-    printf("1. Install Dependencies\n");
-    printf("2. Copy vmlinuz to build-image-%s/live\n", version);
-    printf("3. Generate initrd\n");
-    printf("4. Edit grub.cfg\n");
-    printf("5. Edit isolinux.cfg\n");
-    printf("6. Back to main menu\n");
-    printf("Select action: ");
+    printf(YELLOW "1. Install Dependencies\n" RESET);
+    printf(YELLOW "2. Copy vmlinuz to build-image-%s/live\n" RESET, version);
+    printf(YELLOW "3. Generate initrd\n" RESET);
+    printf(YELLOW "4. Edit grub.cfg\n" RESET);
+    printf(YELLOW "5. Edit isolinux.cfg\n" RESET);
+    printf(RED "6. Back to main menu\n" RESET);
 }
 
-void run_command(const char *command) {
+int run_command(const char *command) {
     printf(BLUE "\nExecuting: %s\n" RESET, command);
     int result = system(command);
     if (result != 0) {
         printf(RED "Command failed with error %d\n" RESET, result);
+        return -1;
     }
+    return 0;
 }
 
 void copy_vmlinuz(const char *version) {
@@ -137,7 +160,7 @@ void edit_isolinux_cfg(const char *version) {
     run_command(command);
 }
 
-void install_dependencies(void) {
+void install_dependencies() {
     const char *packages = "cryptsetup dmeventd isolinux libaio-dev libcares2 "
                           "libdevmapper-event1.02.1 liblvm2cmd2.03 live-boot "
                           "live-boot-doc live-boot-initramfs-tools live-config-systemd "
@@ -145,7 +168,7 @@ void install_dependencies(void) {
                           "thin-provisioning-tools squashfs-tools xorriso";
     
     char command[COMMAND_MAX];
-    strcpy(command, "apt-get install -y ");
+    strcpy(command, "sudo apt-get install -y ");
     strcat(command, packages);
     run_command(command);
 }
