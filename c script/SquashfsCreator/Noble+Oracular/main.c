@@ -25,7 +25,7 @@ void print_banner() {
         "░╚════╝░╚══════╝╚═╝░░░░░░╚═════╝░╚═════╝░╚══════╝╚═╝░░░░░╚═╝░╚════╝░╚═════╝░╚═════╝░\n"
     );
     printf("\033[0m");
-    printf("\033[31mClaudemods SquashFS Creator v1.02 This Could Take a While!\033[0m\n\n");
+    printf("\033[31mClaudemods SquashFS Creator v1.02+ Special This Could Take a While!\033[0m\n\n");
 }
 
 bool dir_exists(const char* path) {
@@ -49,7 +49,7 @@ void clone_system(const char* clone_dir, const char** exclude_dirs, int exclude_
         mkdir(clone_dir, 0755);
     }
 
-    char command[MAX_CMD] = "sudo rsync -aHAX --numeric-ids --info=progress2 "
+    char command[MAX_CMD] = "sudo rsync -aHAxSr --numeric-ids --info=progress2 "
     "--include=dev --include=proc --include=tmp --include=sys "
     "--include=run --include=media "
     "--exclude=dev/* --exclude=proc/* --exclude=tmp/* --exclude=sys/* "
