@@ -149,7 +149,7 @@ void create_squashfs_image(const char* output_image, const char* clone_dir,
                                }
 
                                char build_dir[MAX_PATH];
-                               if (snprintf(build_dir, sizeof(build_dir), "/opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/live") >= (int)sizeof(build_dir)) {
+                               if (snprintf(build_dir, sizeof(build_dir), "/home/$USER/.config/build-image-noble/live") >= (int)sizeof(build_dir)) {
                                    fprintf(stderr, "Path too long for build_dir\n");
                                    return EXIT_FAILURE;
                                }
