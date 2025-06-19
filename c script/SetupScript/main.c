@@ -54,56 +54,56 @@ void install_dependencies_ubuntu() {
 // Copy vmlinuz (Noble)
 void copy_vmlinuz_noble() {
     progress_dialog("Copying vmlinuz (Noble)...");
-    run_command("sudo cp /boot/vmlinuz-6.8.0-31-generic /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/live/");
+    run_command("sudo cp /boot/vmlinuz-6.11.0-26-generic /home/$USER/.config/cui/build-image-noble/live/");
     message_box("Success", "Vmlinuz copied successfully.");
 }
 
 // Copy vmlinuz (Oracular)
 void copy_vmlinuz_oracular() {
     progress_dialog("Copying vmlinuz (Oracular)...");
-    run_command("sudo cp /boot/vmlinuz-6.11.0-9-generic /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/live/");
+    run_command("sudo cp /boot/vmlinuz-6.11.0-26-generic /home/$USER/.config/cui/build-image-oracular/live/");
     message_box("Success", "Vmlinuz copied successfully.");
 }
 
 // Generate initrd (Noble)
 void generate_initrd_noble() {
     progress_dialog("Generating Initramfs (Noble)...");
-    run_command("sudo mkinitramfs -o \"/opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/live/initrd.img-$(uname -r)\" \"$(uname -r)\"");
+    run_command("sudo mkinitramfs -o \"/home/$USER/.config/cui/build-image-noble/live/initrd.img-$(uname -r)\" \"$(uname -r)\"");
     message_box("Success", "Initramfs generated successfully.");
 }
 
 // Generate initrd (Oracular)
 void generate_initrd_oracular() {
     progress_dialog("Generating Initramfs (Oracular)...");
-    run_command("sudo mkinitramfs -o \"/opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/live/initrd.img-$(uname -r)\" \"$(uname -r)\"");
+    run_command("sudo mkinitramfs -o \"/home/$USER/.config/cui/build-image-oracular/live/initrd.img-$(uname -r)\" \"$(uname -r)\"");
     message_box("Success", "Initramfs generated successfully.");
 }
 
 // Edit grub.cfg (Noble)
 void edit_grub_cfg_noble() {
     progress_dialog("Opening grub.cfg (Noble)...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/boot/grub/grub.cfg");
+    run_command("nano /home/$USER/.config/cui/build-image-noble/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 // Edit grub.cfg (Oracular)
 void edit_grub_cfg_oracular() {
     progress_dialog("Opening grub.cfg (Oracular)...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/boot/grub/grub.cfg");
+    run_command("nano /home/$USER/.config/cui/build-image-oracular/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 // Edit isolinux.cfg (Noble)
 void edit_isolinux_cfg_noble() {
     progress_dialog("Opening isolinux.cfg (Noble)...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/isolinux/isolinux.cfg");
+    run_command("nano /home/$USER/.config/cui/build-image-noble/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
 // Edit isolinux.cfg (Oracular)
 void edit_isolinux_cfg_oracular() {
     progress_dialog("Opening isolinux.cfg (Oracular)...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/isolinux/isolinux.cfg");
+    run_command("nano /home/$USER/.config/cui/build-image-oracular/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
