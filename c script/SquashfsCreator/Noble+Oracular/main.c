@@ -50,7 +50,7 @@ void clone_system(const char* clone_dir, const char** exclude_dirs, int exclude_
     }
 
     char command[MAX_CMD] = "sudo rsync -aHAxSr --numeric-ids --info=progress2 "
-    "--include=dev --include=proc --include=tmp --include=sys "
+    "--include=dev --include=usr --include=proc --include=tmp --include=sys "
     "--include=run --include=media "
     "--exclude=dev/* --exclude=proc/* --exclude=tmp/* --exclude=sys/* "
     "--exclude=run/* --exclude=media/* --exclude=clone_system_temp ";
