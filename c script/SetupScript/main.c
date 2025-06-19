@@ -496,7 +496,7 @@ void copy_vmlinuz_oracular() {
 
     char destination_dir[PATH_MAX];
     strncpy(destination_dir, cwd, PATH_MAX - 1);
-    strncat(destination_dir, "/Supported-Distros/Ubuntu/build-image-oracular/live/", PATH_MAX - strlen(destination_dir) - 1);
+    strncat(destination_dir, "/home/$USER/.config/build-image-noble/live", PATH_MAX - strlen(destination_dir) - 1);
 
     struct stat st = {0};
     if (stat(destination_dir, &st) == -1) {
@@ -522,7 +522,7 @@ void copy_vmlinuz_oracular() {
 void generate_initrd_oracular() {
     progress_dialog("Generating Initramfs...");
     char command[COMMAND_MAX];
-    strncpy(command, "sudo mkinitramfs -o \"$(pwd)/Ubuntu/build-image-oracular/live/initrd.img-$(uname -r)\" \"$(uname -r)\"", COMMAND_MAX - 1);
+    strncpy(command, "sudo mkinitramfs -o \"$(pwd)/build-image-oracular/live/initrd.img-$(uname -r)\" \"$(uname -r)\"", COMMAND_MAX - 1);
     if (run_command(command) == 0) {
         message_box("Success", "Initramfs generated successfully.");
     }
@@ -530,13 +530,13 @@ void generate_initrd_oracular() {
 
 void edit_grub_cfg_oracular() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/boot/grub/grub.cfg");
+    run_command("nano /home/$USER/.config/build-image-oracular/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 void edit_isolinux_cfg_oracular() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/isolinux/isolinux.cfg");
+    run_command("nano /home/$USER/.config/build-image-oracular/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
@@ -600,7 +600,7 @@ void copy_vmlinuz_noble() {
 
     char destination_dir[PATH_MAX];
     strncpy(destination_dir, cwd, PATH_MAX - 1);
-    strncat(destination_dir, "/Supported-Distros/Ubuntu/build-image-noble/live/", PATH_MAX - strlen(destination_dir) - 1);
+    strncat(destination_dir, "/build-image-noble/live", PATH_MAX - strlen(destination_dir) - 1);
 
     struct stat st = {0};
     if (stat(destination_dir, &st) == -1) {
@@ -626,7 +626,7 @@ void copy_vmlinuz_noble() {
 void generate_initrd_noble() {
     progress_dialog("Generating Initramfs...");
     char command[COMMAND_MAX];
-    strncpy(command, "sudo mkinitramfs -o \"$(pwd)/Ubuntu/build-image-noble/live/initrd.img-$(uname -r)\" \"$(uname -r)\"", COMMAND_MAX - 1);
+    strncpy(command, "sudo mkinitramfs -o \"$(pwd)/build-image-noble/live/initrd.img-$(uname -r)\" \"$(uname -r)\"", COMMAND_MAX - 1);
     if (run_command(command) == 0) {
         message_box("Success", "Initramfs generated successfully.");
     }
@@ -634,13 +634,13 @@ void generate_initrd_noble() {
 
 void edit_grub_cfg_noble() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/boot/grub/grub.cfg");
+    run_command("nano /home/$USER/.config/build-image-noble/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 void edit_isolinux_cfg_noble() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/isolinux/isolinux.cfg");
+    run_command("nano /home/$USER/.config/build-image-noble/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
