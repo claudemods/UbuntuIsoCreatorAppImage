@@ -429,7 +429,6 @@ void edit_isolinux_cfg_debian() {
 
 void noble_24_04() {
     print_dark_red("You chose Noble 24.04.");
-    print_dark_red("This feature is being implemented soon.");
 }
 
 void oracular_24_10() {
@@ -494,18 +493,32 @@ void copy_vmlinuz_oracular() {
         return;
     }
 
+    // Create build-image-oracular/live directory structure
     char destination_dir[PATH_MAX];
     strncpy(destination_dir, cwd, PATH_MAX - 1);
-    strncat(destination_dir, "/build-image-noble/live", PATH_MAX - strlen(destination_dir) - 1);
+    strncat(destination_dir, "/build-image-oracular/live", PATH_MAX - strlen(destination_dir) - 1);
 
     struct stat st = {0};
     if (stat(destination_dir, &st) == -1) {
-        mkdir(destination_dir, 0755);
+        // Create parent directories if they don't exist
+        char parent_dir[PATH_MAX];
+        strncpy(parent_dir, cwd, PATH_MAX - 1);
+        strncat(parent_dir, "/build-image-oracular", PATH_MAX - strlen(parent_dir) - 1);
+        
+        if (stat(parent_dir, &st) == -1 && mkdir(parent_dir, 0755) != 0) {
+            error_box("Error", "Failed to create build-image-oracular directory.");
+            return;
+        }
+        
+        if (mkdir(destination_dir, 0755) != 0) {
+            error_box("Error", "Failed to create live directory.");
+            return;
+        }
     }
 
     char destination_path[PATH_MAX];
     strncpy(destination_path, destination_dir, PATH_MAX - 1);
-    strncat(destination_path, "vmlinuz-", PATH_MAX - strlen(destination_path) - 1);
+    strncat(destination_path, "/vmlinuz-", PATH_MAX - strlen(destination_path) - 1);
     strncat(destination_path, kernel_version, PATH_MAX - strlen(destination_path) - 1);
 
     char command[COMMAND_MAX];
@@ -515,7 +528,7 @@ void copy_vmlinuz_oracular() {
     strncat(command, destination_path, COMMAND_MAX - strlen(command) - 1);
 
     if (run_command(command) == 0) {
-        message_box("Success", "Vmlinuz copied successfully.");
+        message_box("Success", "Vmlinuz copied successfully to build-image-oracular/live");
     }
 }
 
@@ -524,20 +537,54 @@ void generate_initrd_oracular() {
     char command[COMMAND_MAX];
     strncpy(command, "sudo mkinitramfs -o \"$(pwd)/build-image-oracular/live/initrd.img-$(uname -r)\" \"$(uname -r)\"", COMMAND_MAX - 1);
     if (run_command(command) == 0) {
-        message_box("Success", "Initramfs generated successfully.");
+        message_box("Success", "Initramfs generated successfully in build-image-oracular/live");
     }
 }
 
 void edit_grub_cfg_oracular() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("nano /home/$USER/.config/build-image-oracular/boot/grub/grub.cfg");
-    message_box("Success", "grub.cfg opened for editing.");
+    char cwd[PATH_MAX];
+    if (!getcwd(cwd, sizeof(cwd))) {
+        error_box("Error", "Failed to get current directory.");
+        return;
+    }
+    
+    char grub_cfg_path[PATH_MAX];
+    strncpy(grub_cfg_path, cwd, PATH_MAX - 1);
+    strncat(grub_cfg_path, "/build-image-oracular/boot/grub/grub.cfg", PATH_MAX - strlen(grub_cfg_path) - 1);
+    
+    if (access(grub_cfg_path, F_OK) == 0) {
+        char command[PATH_MAX + 10];
+        strncpy(command, "nano ", PATH_MAX + 10 - 1);
+        strncat(command, grub_cfg_path, PATH_MAX + 10 - strlen(command) - 1);
+        run_command(command);
+        message_box("Success", "grub.cfg opened for editing.");
+    } else {
+        error_box("Error", "grub.cfg not found in build-image-oracular/boot/grub/");
+    }
 }
 
 void edit_isolinux_cfg_oracular() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("nano /home/$USER/.config/build-image-oracular/isolinux/isolinux.cfg");
-    message_box("Success", "isolinux.cfg opened for editing.");
+    char cwd[PATH_MAX];
+    if (!getcwd(cwd, sizeof(cwd))) {
+        error_box("Error", "Failed to get current directory.");
+        return;
+    }
+    
+    char isolinux_cfg_path[PATH_MAX];
+    strncpy(isolinux_cfg_path, cwd, PATH_MAX - 1);
+    strncat(isolinux_cfg_path, "/build-image-oracular/isolinux/isolinux.cfg", PATH_MAX - strlen(isolinux_cfg_path) - 1);
+    
+    if (access(isolinux_cfg_path, F_OK) == 0) {
+        char command[PATH_MAX + 10];
+        strncpy(command, "nano ", PATH_MAX + 10 - 1);
+        strncat(command, isolinux_cfg_path, PATH_MAX + 10 - strlen(command) - 1);
+        run_command(command);
+        message_box("Success", "isolinux.cfg opened for editing.");
+    } else {
+        error_box("Error", "isolinux.cfg not found in build-image-oracular/isolinux/");
+    }
 }
 
 void install_dependencies_noble() {
@@ -598,18 +645,32 @@ void copy_vmlinuz_noble() {
         return;
     }
 
+    // Create build-image-noble/live directory structure
     char destination_dir[PATH_MAX];
     strncpy(destination_dir, cwd, PATH_MAX - 1);
     strncat(destination_dir, "/build-image-noble/live", PATH_MAX - strlen(destination_dir) - 1);
 
     struct stat st = {0};
     if (stat(destination_dir, &st) == -1) {
-        mkdir(destination_dir, 0755);
+        // Create parent directories if they don't exist
+        char parent_dir[PATH_MAX];
+        strncpy(parent_dir, cwd, PATH_MAX - 1);
+        strncat(parent_dir, "/build-image-noble", PATH_MAX - strlen(parent_dir) - 1);
+        
+        if (stat(parent_dir, &st) == -1 && mkdir(parent_dir, 0755) != 0) {
+            error_box("Error", "Failed to create build-image-noble directory.");
+            return;
+        }
+        
+        if (mkdir(destination_dir, 0755) != 0) {
+            error_box("Error", "Failed to create live directory.");
+            return;
+        }
     }
 
     char destination_path[PATH_MAX];
     strncpy(destination_path, destination_dir, PATH_MAX - 1);
-    strncat(destination_path, "vmlinuz-", PATH_MAX - strlen(destination_path) - 1);
+    strncat(destination_path, "/vmlinuz-", PATH_MAX - strlen(destination_path) - 1);
     strncat(destination_path, kernel_version, PATH_MAX - strlen(destination_path) - 1);
 
     char command[COMMAND_MAX];
@@ -619,7 +680,7 @@ void copy_vmlinuz_noble() {
     strncat(command, destination_path, COMMAND_MAX - strlen(command) - 1);
 
     if (run_command(command) == 0) {
-        message_box("Success", "Vmlinuz copied successfully.");
+        message_box("Success", "Vmlinuz copied successfully to build-image-noble/live");
     }
 }
 
@@ -628,20 +689,54 @@ void generate_initrd_noble() {
     char command[COMMAND_MAX];
     strncpy(command, "sudo mkinitramfs -o \"$(pwd)/build-image-noble/live/initrd.img-$(uname -r)\" \"$(uname -r)\"", COMMAND_MAX - 1);
     if (run_command(command) == 0) {
-        message_box("Success", "Initramfs generated successfully.");
+        message_box("Success", "Initramfs generated successfully in build-image-noble/live");
     }
 }
 
 void edit_grub_cfg_noble() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("nano /home/$USER/.config/cui/build-image-noble/boot/grub/grub.cfg");
-    message_box("Success", "grub.cfg opened for editing.");
+    char cwd[PATH_MAX];
+    if (!getcwd(cwd, sizeof(cwd))) {
+        error_box("Error", "Failed to get current directory.");
+        return;
+    }
+    
+    char grub_cfg_path[PATH_MAX];
+    strncpy(grub_cfg_path, cwd, PATH_MAX - 1);
+    strncat(grub_cfg_path, "/build-image-noble/boot/grub/grub.cfg", PATH_MAX - strlen(grub_cfg_path) - 1);
+    
+    if (access(grub_cfg_path, F_OK) == 0) {
+        char command[PATH_MAX + 10];
+        strncpy(command, "nano ", PATH_MAX + 10 - 1);
+        strncat(command, grub_cfg_path, PATH_MAX + 10 - strlen(command) - 1);
+        run_command(command);
+        message_box("Success", "grub.cfg opened for editing.");
+    } else {
+        error_box("Error", "grub.cfg not found in build-image-noble/boot/grub/");
+    }
 }
 
 void edit_isolinux_cfg_noble() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("nano /home/$USER/.config/cui/build-image-noble/isolinux/isolinux.cfg");
-    message_box("Success", "isolinux.cfg opened for editing.");
+    char cwd[PATH_MAX];
+    if (!getcwd(cwd, sizeof(cwd))) {
+        error_box("Error", "Failed to get current directory.");
+        return;
+    }
+    
+    char isolinux_cfg_path[PATH_MAX];
+    strncpy(isolinux_cfg_path, cwd, PATH_MAX - 1);
+    strncat(isolinux_cfg_path, "/build-image-noble/isolinux/isolinux.cfg", PATH_MAX - strlen(isolinux_cfg_path) - 1);
+    
+    if (access(isolinux_cfg_path, F_OK) == 0) {
+        char command[PATH_MAX + 10];
+        strncpy(command, "nano ", PATH_MAX + 10 - 1);
+        strncat(command, isolinux_cfg_path, PATH_MAX + 10 - strlen(command) - 1);
+        run_command(command);
+        message_box("Success", "isolinux.cfg opened for editing.");
+    } else {
+        error_box("Error", "isolinux.cfg not found in build-image-noble/isolinux/");
+    }
 }
 
 void install_dependencies_arch() {
