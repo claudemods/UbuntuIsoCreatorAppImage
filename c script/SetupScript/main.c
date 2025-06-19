@@ -13,22 +13,18 @@
 #define GREEN   "\x1b[32m"
 #define YELLOW  "\x1b[33m"
 #define BLUE    "\x1b[34m"
-#define MAGENTA "\x1b[35m"
-#define CYAN    "\x1b[36m"
 #define RESET   "\x1b[0m"
 
 // Function prototypes
 void main_menu();
 void print_dark_red(const char *text);
-void print_version_menu(const char *version);
-void print_action_menu(const char *version);
 int run_command(const char *command);
 void copy_vmlinuz(const char *version);
 void generate_initrd(const char *version);
-void edit_grub_cfg(const char *version);
-void edit_isolinux_cfg(const char *version);
+void edit_config(const char *version, const char *file);
 void install_dependencies();
 void clear_screen();
+char* get_kernel_version();
 
 int main() {
     int choice;
@@ -53,24 +49,34 @@ int main() {
         while (1) {
             clear_screen();
             main_menu();
-            print_version_menu(version);
-            print_action_menu(version);
+            print_dark_red(choice == 1 ? "Noble 24.04 Actions:" : "Oracular 24.10 Actions:");
+            print_dark_red("1. Install Dependencies");
+            print_dark_red("2. Copy vmlinuz");
+            print_dark_red("3. Generate initrd");
+            print_dark_red("4. Edit boot configs");
+            print_dark_red("5. Back to main menu");
             printf("Select action: ");
             
             fgets(input, sizeof(input), stdin);
             int action = atoi(input);
             
-            if (action == 6) break;
+            if (action == 5) break;
             
             switch (action) {
                 case 1: install_dependencies(); break;
                 case 2: copy_vmlinuz(version); break;
                 case 3: generate_initrd(version); break;
-                case 4: edit_grub_cfg(version); break;
-                case 5: edit_isolinux_cfg(version); break;
+                case 4: {
+                    printf("Edit:\n1. grub.cfg\n2. isolinux.cfg\nSelect: ");
+                    fgets(input, sizeof(input), stdin);
+                    int cfg_choice = atoi(input);
+                    if (cfg_choice == 1) edit_config(version, "grub.cfg");
+                    else if (cfg_choice == 2) edit_config(version, "isolinux.cfg");
+                    break;
+                }
                 default: print_dark_red("Invalid choice");
             }
-            printf(CYAN "\nPress Enter to continue..." RESET);
+            printf("\nPress Enter to continue...");
             getchar();
         }
     }
@@ -93,84 +99,82 @@ void print_dark_red(const char *text) {
     printf(RED "%s" RESET "\n", text);
 }
 
-void print_version_menu(const char *version) {
-    printf(MAGENTA "\n╔══════════════════════════════════════════╗\n" RESET);
-    printf(MAGENTA "║" RESET "  Ubuntu %s ISO Configuration  " MAGENTA "║\n" RESET,
-           strcmp(version, "noble") == 0 ? "Noble 24.04" : "Oracular 24.10");
-    printf(MAGENTA "╚══════════════════════════════════════════╝\n\n" RESET);
-}
-
-void print_action_menu(const char *version) {
-    printf(YELLOW "1. Install Dependencies\n" RESET);
-    printf(YELLOW "2. Copy vmlinuz to build-image-%s/live\n" RESET, version);
-    printf(YELLOW "3. Generate initrd\n" RESET);
-    printf(YELLOW "4. Edit grub.cfg\n" RESET);
-    printf(YELLOW "5. Edit isolinux.cfg\n" RESET);
-    printf(RED "6. Back to main menu\n" RESET);
-}
-
 int run_command(const char *command) {
-    printf(BLUE "\nExecuting: %s\n" RESET, command);
-    int result = system(command);
-    if (result != 0) {
-        printf(RED "Command failed with error %d\n" RESET, result);
-        return -1;
+    printf(BLUE "Running: %s\n" RESET, command);
+    return system(command);
+}
+
+char* get_kernel_version() {
+    static char version[KERNEL_VERSION_MAX];
+    FILE *fp = popen("uname -r", "r");
+    if (!fp) {
+        print_dark_red("Failed to get kernel version");
+        return NULL;
     }
-    return 0;
+    if (!fgets(version, sizeof(version), fp)) {
+        pclose(fp);
+        print_dark_red("Failed to read kernel version");
+        return NULL;
+    }
+    pclose(fp);
+    version[strcspn(version, "\n")] = 0; // Remove newline
+    return version;
 }
 
 void copy_vmlinuz(const char *version) {
-    char mkdir_cmd[COMMAND_MAX];
-    char cp_cmd[COMMAND_MAX];
+    char *kernel_version = get_kernel_version();
+    if (!kernel_version) return;
+
+    char cmd[COMMAND_MAX];
     
     // Create directory structure
-    strcpy(mkdir_cmd, "mkdir -p build-image-");
-    strcat(mkdir_cmd, version);
-    strcat(mkdir_cmd, "/live");
-    run_command(mkdir_cmd);
+    sprintf(cmd, "mkdir -p build-image-%s/live", version);
+    run_command(cmd);
     
-    // Copy vmlinuz to live directory
-    strcpy(cp_cmd, "sudo cp /boot/vmlinuz-$(uname -r) build-image-");
-    strcat(cp_cmd, version);
-    strcat(cp_cmd, "/live/vmlinuz-$(uname -r");
-    run_command(cp_cmd);
+    // Copy vmlinuz (from versioned source to unversioned destination)
+    sprintf(cmd, "sudo cp /boot/vmlinuz-%s build-image-%s/live/vmlinuz", 
+            kernel_version, version);
+    
+    if (run_command(cmd) == 0) {
+        printf(GREEN "Successfully copied vmlinuz-%s to build-image-%s/live/vmlinuz\n" RESET, 
+               kernel_version, version);
+    }
 }
 
 void generate_initrd(const char *version) {
-    char command[COMMAND_MAX];
-    strcpy(command, "sudo mkinitramfs -o build-image-");
-    strcat(command, version);
-    strcat(command, "/live/initrd.img-$(uname -r) $(uname -r)");
-    run_command(command);
+    char *kernel_version = get_kernel_version();
+    if (!kernel_version) return;
+
+    char cmd[COMMAND_MAX];
+    sprintf(cmd, "sudo mkinitramfs -o build-image-%s/live/initrd.img-%s %s", 
+            version, kernel_version, kernel_version);
+    
+    if (run_command(cmd) == 0) {
+        printf(GREEN "initrd.img-%s generated in build-image-%s/live/\n" RESET, 
+               kernel_version, version);
+    }
 }
 
-void edit_grub_cfg(const char *version) {
-    char command[COMMAND_MAX];
-    strcpy(command, "nano build-image-");
-    strcat(command, version);
-    strcat(command, "/boot/grub/grub.cfg");
-    run_command(command);
-}
-
-void edit_isolinux_cfg(const char *version) {
-    char command[COMMAND_MAX];
-    strcpy(command, "nano build-image-");
-    strcat(command, version);
-    strcat(command, "/isolinux/isolinux.cfg");
-    run_command(command);
+void edit_config(const char *version, const char *file) {
+    char cmd[COMMAND_MAX];
+    sprintf(cmd, "nano build-image-%s/%s/%s", 
+            version,
+            strcmp(file, "grub.cfg") == 0 ? "boot/grub" : "isolinux",
+            file);
+    run_command(cmd);
 }
 
 void install_dependencies() {
-    const char *packages = "cryptsetup dmeventd isolinux libaio-dev libcares2 "
-                          "libdevmapper-event1.02.1 liblvm2cmd2.03 live-boot "
-                          "live-boot-doc live-boot-initramfs-tools live-config-systemd "
-                          "live-tools lvm2 pxelinux syslinux syslinux-common "
-                          "thin-provisioning-tools squashfs-tools xorriso";
+    const char *cmd = "sudo apt-get install -y "
+        "cryptsetup dmeventd isolinux libaio-dev libcares2 "
+        "libdevmapper-event1.02.1 liblvm2cmd2.03 live-boot "
+        "live-boot-doc live-boot-initramfs-tools live-config-systemd "
+        "live-tools lvm2 pxelinux syslinux syslinux-common "
+        "thin-provisioning-tools squashfs-tools xorriso";
     
-    char command[COMMAND_MAX];
-    strcpy(command, "sudo apt-get install -y ");
-    strcat(command, packages);
-    run_command(command);
+    if (run_command(cmd) == 0) {
+        printf(GREEN "Dependencies installed successfully\n" RESET);
+    }
 }
 
 void clear_screen() {
