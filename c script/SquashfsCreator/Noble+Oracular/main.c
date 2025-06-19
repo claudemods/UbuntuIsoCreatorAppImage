@@ -75,7 +75,7 @@ void clone_system(const char* clone_dir) {
 }
 
 void create_squashfs_image(void) {
-    const char* command = "sudo mksquashfs clone_system_temp filesystem.squashfs "
+    const char* command = "sudo mksquashfs clone_system_temp /home/$USER/.config/cui/build-image-noble/live/filesystem.squashfs "
                          "-comp xz -Xbcj x86 -b 1M -no-duplicates -no-recovery "
                          "-always-use-fragments -wildcards -xattrs";
 
