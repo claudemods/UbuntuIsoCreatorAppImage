@@ -105,7 +105,7 @@ void create_iso() {
 
     char xorriso_command[4096];
     snprintf(xorriso_command, sizeof(xorriso_command),
-             "xorriso -as mkisofs -o %s -V 2024 -iso-level 3 "
+             "xorriso -as mkisofs -o %s -V 2025 -iso-level 3 "
              "-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin "
              "-c isolinux/boot.cat -b isolinux/isolinux.bin "
              "-no-emul-boot -boot-load-size 4 -boot-info-table "
