@@ -55,4 +55,6 @@
 
 this project is going open source 
 
+build dependencies needed to install libreadline6-dev and libncurses-dev
+
 **🚧 Under Construction: Work in Progress 🚧**
