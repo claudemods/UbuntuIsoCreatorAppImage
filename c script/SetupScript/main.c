@@ -138,7 +138,7 @@ void copy_vmlinuz(const char *version) {
 
 void generate_initrd(const char *version) {
     char command[COMMAND_MAX];
-    strcpy(command, "mkinitramfs -o build-image-");
+    strcpy(command, "sudo mkinitramfs -o build-image-");
     strcat(command, version);
     strcat(command, "/live/initrd.img-$(uname -r) $(uname -r)");
     run_command(command);
