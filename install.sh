@@ -65,7 +65,7 @@ fi
 # Copy compiled files
 # Copy each compiled executable individually
 cp UbuntuIsoCreatorAppImage/cscript/MainApp/mainapp.bin /home/$USER/.config/cui/
-cp UbuntuIsoCreatorAppImage/cscript/SetupScript/Noble+Oracular/ubuntusetupscript.bin /home/$USER/.config/cui/ || cp_failed=1
+cp UbuntuIsoCreatorAppImage/cscript/SetupScript/ubuntusetupscript.bin /home/$USER/.config/cui/ || cp_failed=1
 cp UbuntuIsoCreatorAppImage/cscript/isocreator/noble/ubuntuisocreator.bin /home/$USER/.config/cui/ || cp_failed=1
 cp UbuntuIsoCreatorAppImage/cscript/SquashfsCreator/Noble+Oracular/ubuntusquashfscreator.bin /home/$USER/.config/cui/ || cp_failed=1
 
