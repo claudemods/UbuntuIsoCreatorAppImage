@@ -285,7 +285,7 @@ void edit_grub_cfg() {
     const char *grub_cfg_path = "/opt/claudemods-iso-konsole-script/Supported-Distros/Arch/build-image-arch/boot/grub/grub.cfg";
     if (access(grub_cfg_path, F_OK) == 0) {
         char command[PATH_MAX + 10];
-        strncpy(command, "kate ", PATH_MAX + 10 - 1);
+        strncpy(command, "nano ", PATH_MAX + 10 - 1);
         strncat(command, grub_cfg_path, PATH_MAX + 10 - strlen(command) - 1);
         run_command(command);
     } else {
@@ -297,7 +297,7 @@ void edit_syslinux_cfg() {
     const char *syslinux_cfg_path = "/opt/claudemods-iso-konsole-script/Supported-Distros/Arch/build-image-arch/isolinux/isolinux.cfg";
     if (access(syslinux_cfg_path, F_OK) == 0) {
         char command[PATH_MAX + 10];
-        strncpy(command, "kate ", PATH_MAX + 10 - 1);
+        strncpy(command, "nano ", PATH_MAX + 10 - 1);
         strncat(command, syslinux_cfg_path, PATH_MAX + 10 - strlen(command) - 1);
         run_command(command);
     } else {
@@ -530,13 +530,13 @@ void generate_initrd_oracular() {
 
 void edit_grub_cfg_oracular() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/boot/grub/grub.cfg");
+    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 void edit_isolinux_cfg_oracular() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/isolinux/isolinux.cfg");
+    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-oracular/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
@@ -634,19 +634,19 @@ void generate_initrd_noble() {
 
 void edit_grub_cfg_noble() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/boot/grub/grub.cfg");
+    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 void edit_isolinux_cfg_noble() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/isolinux/isolinux.cfg");
+    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/Ubuntu/build-image-noble/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
 void install_dependencies_arch() {
     progress_dialog("Installing dependencies...");
-    run_command("kate /opt/claudemods-iso-konsole-script/Supported-Distros/information/arch-dependencies.txt");
+    run_command("nano /opt/claudemods-iso-konsole-script/Supported-Distros/information/arch-dependencies.txt");
     run_command("sudo pacman -U /opt/claudemods-iso-konsole-script/Supported-Distros/Arch/calamares-files/calamares-eggs-3.3.10-1-x86_64.pkg.tar.zst");
     const char *packages[] = {
         "arch-install-scripts", "bash-completion", "dosfstools", "erofs-utils",
