@@ -496,7 +496,7 @@ void copy_vmlinuz_oracular() {
 
     char destination_dir[PATH_MAX];
     strncpy(destination_dir, cwd, PATH_MAX - 1);
-    strncat(destination_dir, "/home/$USER/.config/build-image-noble/live", PATH_MAX - strlen(destination_dir) - 1);
+    strncat(destination_dir, "/build-image-noble/live", PATH_MAX - strlen(destination_dir) - 1);
 
     struct stat st = {0};
     if (stat(destination_dir, &st) == -1) {
@@ -634,13 +634,13 @@ void generate_initrd_noble() {
 
 void edit_grub_cfg_noble() {
     progress_dialog("Opening grub.cfg for editing...");
-    run_command("nano /home/$USER/.config/build-image-noble/boot/grub/grub.cfg");
+    run_command("nano /home/$USER/.config/cui/build-image-noble/boot/grub/grub.cfg");
     message_box("Success", "grub.cfg opened for editing.");
 }
 
 void edit_isolinux_cfg_noble() {
     progress_dialog("Opening isolinux.cfg for editing...");
-    run_command("nano /home/$USER/.config/build-image-noble/isolinux/isolinux.cfg");
+    run_command("nano /home/$USER/.config/cui/build-image-noble/isolinux/isolinux.cfg");
     message_box("Success", "isolinux.cfg opened for editing.");
 }
 
