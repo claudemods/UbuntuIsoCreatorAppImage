@@ -52,11 +52,11 @@ while true; do
 done
 
 # Handle build image
-cd UbuntuIsoCreatorAppImage/cscript/Build-Images || exit 1
+cd UbuntuIsoCreatorAppImage/cscript/Build-Images
 if [ -f "build-image-$build_type.zip" ]; then
     echo -e "\e[38;2;36;255;255mExtracting build-image-$build_type.zip...\e[0m"
-    mkdir -p /home/$USER/.config/UbuntuIsoCreatorAppImage/cscript/Build-Images || exit 1
-    unzip -q "build-image-$build_type.zip" -d /home/$USER/.config/UbuntuIsoCreatorAppImage/cscript/Build-Images/ || exit 1
+    mkdir -p /home/$USER/.config/cui
+    unzip -q "build-image-$build_type.zip" -d /home/$USER/.config/cui/ || exit 1
 else
     echo -e "\e[31mError: build-image-$build_type.zip not found!\e[0m"
     exit 1
