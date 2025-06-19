@@ -132,7 +132,7 @@ void copy_vmlinuz(const char *version) {
     // Copy vmlinuz to live directory
     strcpy(cp_cmd, "sudo cp /boot/vmlinuz-$(uname -r) build-image-");
     strcat(cp_cmd, version);
-    strcat(cp_cmd, "/live/vmlinuz");
+    strcat(cp_cmd, "/live/vmlinuz-$(uname -r");
     run_command(cp_cmd);
 }
 
