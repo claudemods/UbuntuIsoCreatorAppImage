@@ -52,7 +52,7 @@ while true; do
 done
 
 # Handle build image
-cd UbuntuIsoCreatorAppImage/cscript/Build-Images
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/Build-Images
 if [ -f "build-image-$build_type.zip" ]; then
     echo -e "\e[38;2;36;255;255mExtracting build-image-$build_type.zip...\e[0m"
     mkdir -p /home/$USER/.config/cui
