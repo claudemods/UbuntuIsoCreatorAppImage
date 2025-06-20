@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 # Fancy Loading Bar Function (Cyan #24ffff)
 function loading_bar() {
@@ -64,9 +64,13 @@ fi
 
 # Copy compiled files
 # Copy each compiled executable individually
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/MainApp/
 cp UbuntuIsoCreatorAppImage/cscript/MainApp/mainapp.bin /home/$USER/.config/cui/
-cp UbuntuIsoCreatorAppImage/cscript/SetupScript/ubuntusetupscript.bin /home/$USER/.config/cui/ || cp_failed=1
-cp UbuntuIsoCreatorAppImage/cscript/isocreator/noble/ubuntuisocreator.bin /home/$USER/.config/cui/ || cp_failed=1
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/SetupScript/
+cp UbuntuIsoCreatorAppImage/cscript/SetupScript/ubuntusetupscript.bin /home/$USER/.config/cui/
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/isocreator/noble/
+cp UbuntuIsoCreatorAppImage/cscript/isocreator/noble/ubuntuisocreator.bin /home/$USER/.config/cui/
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript/SquashfsCreator/Noble+Oracular
 cp UbuntuIsoCreatorAppImage/cscript/SquashfsCreator/Noble+Oracular/ubuntusquashfscreator.bin /home/$USER/.config/cui/ || cp_failed=1
 
 if [ "$cp_failed" = 1 ]; then
@@ -77,5 +81,6 @@ fi
 echo -e "\e[1;32mInstallation completed successfully!\e[0m"
 
 echo -e "\e[1;32mInstallation completed successfully!\e[0m"
+cd /home/$USER/UbuntuIsoCreatorAppImage/cscript
 sudo cp UbuntuIsoCreatorAppImage/cscript/cui.desktop /usr/share/applications
 echo you can launch cui.desktop from applications menu
