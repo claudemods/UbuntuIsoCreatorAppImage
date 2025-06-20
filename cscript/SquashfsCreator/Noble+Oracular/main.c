@@ -91,7 +91,7 @@ void delete_clone_system_temp(void) {
 
     struct stat st;
     if (stat("filesystem.squashfs", &st) == 0) {
-        strcpy(command, "sudo rm -f filesystem.squashfs");
+        strcpy(command, "sudo rm -f /home/$USER/.config/cui/build-image-noble/live/filesystem.squashfs");
         printf("Deleting SquashFS image: filesystem.squashfs\n");
         run_command(command);
     } else {
