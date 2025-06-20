@@ -21,7 +21,6 @@
 #define RESET "\033[0m"
 
 // ==================== UTILITY FUNCTIONS ====================
-
 void print_blue(const char *text) {
     printf(BLUE "%s" RESET "\n", text);
 }
@@ -65,27 +64,22 @@ char* prompt(const char *prompt_text) {
 
 void run_sudo_command(const char *command, const char *password) {
     printf(BLUE "Running command: %s" RESET "\n", command);
-
     int pipefd[2];
     if (pipe(pipefd) == -1) {
         perror("pipe");
         exit(EXIT_FAILURE);
     }
-
     pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
         exit(EXIT_FAILURE);
     }
-
     if (pid == 0) {
         close(pipefd[1]);
         dup2(pipefd[0], STDIN_FILENO);
         close(pipefd[0]);
-
         char full_command[1024];
         snprintf(full_command, sizeof(full_command), "sudo -S %s", command);
-
         execl("/bin/sh", "sh", "-c", full_command, (char *)NULL);
         perror("execl");
         exit(EXIT_FAILURE);
@@ -94,10 +88,8 @@ void run_sudo_command(const char *command, const char *password) {
         write(pipefd[1], password, strlen(password));
         write(pipefd[1], "\n", 1);
         close(pipefd[1]);
-
         int status;
         waitpid(pid, &status, 0);
-
         if (WIFEXITED(status)) {
             int exit_code = WEXITSTATUS(status);
             if (exit_code != 0) {
@@ -119,11 +111,9 @@ char* get_kernel_version() {
         perror("Failed to get kernel version");
         return version;
     }
-
     if (fgets(version, sizeof(version), fp)) {
         version[strcspn(version, "\n")] = 0;
     }
-
     pclose(fp);
     return version;
 }
@@ -139,11 +129,10 @@ void print_banner() {
         "░╚════╝░╚══════╝╚═╝░░░░░░╚═════╝░╚═════╝░╚══════╝╚═╝░░░░░╚═╝░╚════╝░╚═════╝░╚═════╝░\n"
     );
     printf(RESET);
-    printf(RED "Claudemods ISO Tools v1.0" RESET "\n\n");
+    printf(RED "Claudemods ISO Creator Advanced C Script v1.01" RESET "\n");
 }
 
 // ==================== ISO CONFIGURATOR FUNCTIONS ====================
-
 void install_dependencies_ubuntu() {
     progress_dialog("Installing dependencies...");
     const char *packages =
@@ -152,7 +141,6 @@ void install_dependencies_ubuntu() {
     "live-boot-doc live-boot-initramfs-tools live-config-systemd "
     "live-tools lvm2 pxelinux syslinux syslinux-common "
     "thin-provisioning-tools squashfs-tools xorriso";
-
     char command[512];
     sprintf(command, "sudo apt-get install -y %s", packages);
     run_command(command);
@@ -208,21 +196,18 @@ void edit_isolinux_cfg_oracular() {
 }
 
 // ==================== SQUASHFS CREATOR FUNCTIONS ====================
-
 void clone_system(const char* clone_dir) {
     if (dir_exists(clone_dir)) {
         printf("Skipping removal of existing clone directory: %s\n", clone_dir);
     } else {
         mkdir(clone_dir, 0755);
     }
-
     const char* command = "sudo rsync -aHAxSr --numeric-ids --info=progress2 "
     "--include=dev --include=usr --include=proc --include=tmp --include=sys "
     "--include=run --include=media "
     "--exclude=dev/* --exclude=proc/* --exclude=tmp/* --exclude=sys/* "
     "--exclude=run/* --exclude=media/* --exclude=clone_system_temp "
     "/ clone_system_temp";
-
         printf("Cloning system directory to: %s\n", clone_dir);
         run_command(command);
 }
@@ -231,7 +216,6 @@ void create_squashfs_image(void) {
     const char* command = "sudo mksquashfs clone_system_temp /home/$USER/.config/cui/build-image-noble/live/filesystem.squashfs "
     "-comp xz -Xbcj x86 -b 1M -no-duplicates -no-recovery "
     "-always-use-fragments -wildcards -xattrs";
-
     printf("Creating SquashFS image: filesystem.squashfs\n");
     run_command(command);
 }
@@ -241,7 +225,6 @@ void delete_clone_system_temp(void) {
     strcpy(command, "sudo rm -rf clone_system_temp");
     printf("Deleting temporary clone directory: clone_system_temp\n");
     run_command(command);
-
     struct stat st;
     if (stat("filesystem.squashfs", &st) == 0) {
         strcpy(command, "sudo rm -f filesystem.squashfs");
@@ -258,26 +241,20 @@ void squashfs_menu() {
         perror("getcwd failed");
         return;
     }
-
     printf("Kernel version: %s\n", get_kernel_version());
     printf("Current directory: %s\n", cwd);
-
     const char* clone_dir = "clone_system_temp";
-
     printf("Temporary clone directory: %s\n", clone_dir);
-
     printf("Select an option:\n");
     printf("1. Max compression (xz)\n");
     printf("2. Create SquashFS from clone_system_temp\n");
     printf("3. Delete clone_system_temp and SquashFS image\n");
     printf("4. Back to Main Menu\n");
-
     int choice;
     if (scanf("%d", &choice) != 1) {
         fprintf(stderr, "Invalid input\n");
         return;
     }
-
     switch (choice) {
         case 1:
             if (!dir_exists(clone_dir)) {
@@ -304,7 +281,6 @@ void squashfs_menu() {
 }
 
 // ==================== ISO CREATOR FUNCTIONS ====================
-
 void create_iso() {
     char *iso_name = prompt("What do you want to name your .iso? ");
     if (!iso_name || strlen(iso_name) == 0) {
@@ -313,27 +289,49 @@ void create_iso() {
         return;
     }
 
-    char application_dir_path[1024];
+    char *output_dir = prompt("Enter the output directory path (or press Enter for current directory): ");
+    if (!output_dir) {
+        output_dir = malloc(2);
+        strcpy(output_dir, ".");
+    } else if (strlen(output_dir) == 0) {
+        free(output_dir);
+        output_dir = malloc(2);
+        strcpy(output_dir, ".");
+    }
+
+    char application_dir_path[PATH_MAX];
     if (getcwd(application_dir_path, sizeof(application_dir_path)) == NULL) {
         perror("getcwd");
         free(iso_name);
+        free(output_dir);
         return;
     }
 
-    char build_image_dir[2048];
+    char build_image_dir[PATH_MAX];
     snprintf(build_image_dir, sizeof(build_image_dir), "%s/build-image-noble", application_dir_path);
 
-    progress_dialog("Creating ISO...");
+    // Ensure the output directory exists
+    struct stat st;
+    if (stat(output_dir, &st) == -1) {
+        if (mkdir(output_dir, 0755) == -1) {
+            perror("mkdir");
+            free(iso_name);
+            free(output_dir);
+            return;
+        }
+    }
 
+    progress_dialog("Creating ISO...");
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H%M", t);
 
-    char iso_file_name[256];
-    snprintf(iso_file_name, sizeof(iso_file_name), "%s_amd64_%s.iso", iso_name, timestamp);
+    char iso_file_name[PATH_MAX];
+    snprintf(iso_file_name, sizeof(iso_file_name), "%s/%s_amd64_%s.iso",
+             output_dir, iso_name, timestamp);
 
-    char xorriso_command[4096];
+    char xorriso_command[PATH_MAX * 2];
     snprintf(xorriso_command, sizeof(xorriso_command),
              "xorriso -as mkisofs -o %s -V 2025 -iso-level 3 "
              "-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin "
@@ -347,6 +345,7 @@ void create_iso() {
     if (!sudo_password || strlen(sudo_password) == 0) {
         error_box("Input Error", "Sudo password cannot be empty.");
         free(iso_name);
+        free(output_dir);
         free(sudo_password);
         return;
     }
@@ -355,11 +354,12 @@ void create_iso() {
     message_box("Success", "ISO creation completed.");
 
     char *choice = prompt("Press 'm' to go back to main menu or Enter to exit: ");
-    if (choice && choice[0] == 'm') {
+    if (choice && (choice[0] == 'm' || choice[0] == 'M')) {
         run_command("ruby /opt/claudemods-iso-konsole-script/demo.rb");
     }
 
     free(iso_name);
+    free(output_dir);
     free(sudo_password);
     free(choice);
 }
@@ -380,6 +380,7 @@ void iso_creator_menu() {
         print_blue("2. Run ISO in QEMU");
         print_blue("3. Back to Main Menu");
         char *choice = prompt("Choose an option: ");
+        if (!choice) continue;
 
         if (strcmp(choice, "1") == 0) {
             create_iso();
@@ -397,7 +398,6 @@ void iso_creator_menu() {
 }
 
 // ==================== COMMAND INSTALLER FUNCTIONS ====================
-
 void create_command_files() {
     // Get current executable path
     char exe_path[PATH_MAX];
@@ -408,8 +408,72 @@ void create_command_files() {
     }
     exe_path[len] = '\0';
 
+    // Create gen-init command
+    FILE *f = fopen("gen-init", "w");
+    if (!f) {
+        perror("fopen gen-init");
+        return;
+    }
+    fprintf(f, "#!/bin/sh\n");
+    fprintf(f, "if [ \"$1\" = \"--help\" ]; then\n");
+    fprintf(f, "  echo \"Usage: gen-init\"\n");
+    fprintf(f, "  echo \"Generate initcpio configuration\"\n");
+    fprintf(f, "  exit 0\n");
+    fprintf(f, "fi\n");
+    fprintf(f, "exec %s 5\n", exe_path);
+    fclose(f);
+    chmod("gen-init", 0755);
+
+    // Create edit-isocfg command
+    f = fopen("edit-isocfg", "w");
+    if (!f) {
+        perror("fopen edit-isocfg");
+        return;
+    }
+    fprintf(f, "#!/bin/sh\n");
+    fprintf(f, "if [ \"$1\" = \"--help\" ]; then\n");
+    fprintf(f, "  echo \"Usage: edit-isocfg\"\n");
+    fprintf(f, "  echo \"Edit isolinux.cfg file\"\n");
+    fprintf(f, "  exit 0\n");
+    fprintf(f, "fi\n");
+    fprintf(f, "exec %s 6\n", exe_path);
+    fclose(f);
+    chmod("edit-isocfg", 0755);
+
+    // Create edit-grubcfg command
+    f = fopen("edit-grubcfg", "w");
+    if (!f) {
+        perror("fopen edit-grubcfg");
+        return;
+    }
+    fprintf(f, "#!/bin/sh\n");
+    fprintf(f, "if [ \"$1\" = \"--help\" ]; then\n");
+    fprintf(f, "  echo \"Usage: edit-grubcfg\"\n");
+    fprintf(f, "  echo \"Edit grub.cfg file\"\n");
+    fprintf(f, "  exit 0\n");
+    fprintf(f, "fi\n");
+    fprintf(f, "exec %s 7\n", exe_path);
+    fclose(f);
+    chmod("edit-grubcfg", 0755);
+
+    // Create setup-script command
+    f = fopen("setup-script", "w");
+    if (!f) {
+        perror("fopen setup-script");
+        return;
+    }
+    fprintf(f, "#!/bin/sh\n");
+    fprintf(f, "if [ \"$1\" = \"--help\" ]; then\n");
+    fprintf(f, "  echo \"Usage: setup-script\"\n");
+    fprintf(f, "  echo \"Open setup script menu\"\n");
+    fprintf(f, "  exit 0\n");
+    fprintf(f, "fi\n");
+    fprintf(f, "exec %s 8\n", exe_path);
+    fclose(f);
+    chmod("setup-script", 0755);
+
     // Create make-iso command
-    FILE *f = fopen("make-iso", "w");
+    f = fopen("make-iso", "w");
     if (!f) {
         perror("fopen make-iso");
         return;
@@ -441,17 +505,28 @@ void create_command_files() {
     chmod("make-squashfs", 0755);
 
     // Install commands to /usr/bin
+    run_command("sudo cp gen-init /usr/bin/");
+    run_command("sudo cp edit-isocfg /usr/bin/");
+    run_command("sudo cp edit-grubcfg /usr/bin/");
+    run_command("sudo cp setup-script /usr/bin/");
     run_command("sudo cp make-iso /usr/bin/");
     run_command("sudo cp make-squashfs /usr/bin/");
-
-    printf(GREEN "Activated! You can now use 'make-iso' and 'make-squashfs' commands in your terminal." RESET "\n");
+    run_command("rm -f gen-init");
+    run_command("rm -f edit-isocfg");
+    run_command("rm -f edit-grubcfg");
+    run_command("rm -f setup-script");
+    run_command("rm -f make-iso");
+    run_command("rm -f make-squashfs");
+    printf(GREEN "Activated! You can now use all commands in your terminal." RESET "\n");
 }
 
 void remove_command_files() {
+    run_command("sudo rm -f /usr/bin/gen-init");
+    run_command("sudo rm -f /usr/bin/edit-isocfg");
+    run_command("sudo rm -f /usr/bin/edit-grubcfg");
+    run_command("sudo rm -f /usr/bin/setup-script");
     run_command("sudo rm -f /usr/bin/make-iso");
     run_command("sudo rm -f /usr/bin/make-squashfs");
-    run_command("rm -f make-iso");
-    run_command("rm -f make-squashfs");
     printf(GREEN "Commands deactivated and removed from system." RESET "\n");
 }
 
@@ -462,10 +537,8 @@ void command_installer_menu() {
         print_blue("1. Activate terminal commands");
         print_blue("2. Deactivate terminal commands");
         print_blue("3. Back to Main Menu");
-
         char *choice = prompt("Choose an option: ");
         if (!choice) continue;
-
         if (strcmp(choice, "1") == 0) {
             create_command_files();
         } else if (strcmp(choice, "2") == 0) {
@@ -481,10 +554,11 @@ void command_installer_menu() {
 }
 
 // ==================== DISTRO CONFIGURATION MENUS ====================
-
 void noble_menu() {
     int choice;
     do {
+        printf("\033[H\033[J");  // Clear screen
+        print_banner();
         print_blue("\nChoose your Noble 24.04 action:");
         print_blue("1. Install Dependencies");
         print_blue("2. Copy vmlinuz");
@@ -494,7 +568,6 @@ void noble_menu() {
         print_blue("6. Back to Main Menu");
         printf("> ");
         scanf("%d", &choice);
-
         switch (choice) {
             case 1: install_dependencies_ubuntu(); break;
             case 2: copy_vmlinuz_noble(); break;
@@ -510,6 +583,8 @@ void noble_menu() {
 void oracular_menu() {
     int choice;
     do {
+        printf("\033[H\033[J");  // Clear screen
+        print_banner();
         print_blue("\nChoose your Oracular 24.10 action:");
         print_blue("1. Install Dependencies");
         print_blue("2. Copy vmlinuz");
@@ -519,7 +594,6 @@ void oracular_menu() {
         print_blue("6. Back to Main Menu");
         printf("> ");
         scanf("%d", &choice);
-
         switch (choice) {
             case 1: install_dependencies_ubuntu(); break;
             case 2: copy_vmlinuz_oracular(); break;
@@ -532,8 +606,37 @@ void oracular_menu() {
     } while (choice != 6);
 }
 
-// ==================== MAIN MENU ====================
+// ==================== SETUP SCRIPT MENU ====================
+void setup_script_menu() {
+    while (1) {
+        printf("\033[H\033[J");  // Clear screen
+        print_banner();
+        print_blue("Setup Script Menu:");
+        print_blue("1. Generate initcpio configuration (Noble)");
+        print_blue("2. Edit isolinux.cfg (Noble)");
+        print_blue("3. Edit grub.cfg (Noble)");
+        print_blue("4. Back to Main Menu");
 
+        char *choice = prompt("Choose an option: ");
+        if (!choice) continue;
+
+        if (strcmp(choice, "1") == 0) {
+            generate_initrd_noble();
+        } else if (strcmp(choice, "2") == 0) {
+            edit_isolinux_cfg_noble();
+        } else if (strcmp(choice, "3") == 0) {
+            edit_grub_cfg_noble();
+        } else if (strcmp(choice, "4") == 0) {
+            free(choice);
+            break;
+        } else {
+            print_blue("Invalid choice.");
+        }
+        free(choice);
+    }
+}
+
+// ==================== MAIN MENU ====================
 int main(int argc, char *argv[]) {
     // Handle command line invocation
     if (argc > 1) {
@@ -542,6 +645,18 @@ int main(int argc, char *argv[]) {
             return 0;
         } else if (strcmp(argv[1], "4") == 0) {
             squashfs_menu();
+            return 0;
+        } else if (strcmp(argv[1], "5") == 0) {
+            generate_initrd_noble();
+            return 0;
+        } else if (strcmp(argv[1], "6") == 0) {
+            edit_isolinux_cfg_noble();
+            return 0;
+        } else if (strcmp(argv[1], "7") == 0) {
+            edit_grub_cfg_noble();
+            return 0;
+        } else if (strcmp(argv[1], "8") == 0) {
+            setup_script_menu();
             return 0;
         }
     }
@@ -557,20 +672,21 @@ int main(int argc, char *argv[]) {
         print_blue("3. SquashFS Creator");
         print_blue("4. ISO Creator");
         print_blue("5. Command Installer");
-        print_blue("6. Exit");
+        print_blue("6. Setup Script");
+        print_blue("7. Exit");
         printf("> ");
         scanf("%d", &choice);
-
         switch (choice) {
             case 1: noble_menu(); break;
             case 2: oracular_menu(); break;
             case 3: squashfs_menu(); break;
             case 4: iso_creator_menu(); break;
             case 5: command_installer_menu(); break;
-            case 6: break;
+            case 6: setup_script_menu(); break;
+            case 7: break;
             default: print_blue("Invalid choice."); break;
         }
-    } while (choice != 6);
+    } while (choice != 7);
 
     return 0;
 }
