@@ -59,7 +59,7 @@ void print_banner() {
         "░╚════╝░╚══════╝╚═╝░░░░░░╚═════╝░╚═════╝░╚══════╝╚═╝░░░░░╚═╝░╚════╝░╚═════╝░╚═════╝░\n"
     );
     printf("%s", RESET);
-    printf("%sClaudemods ISO Creator Advanced C Script v1.01%s\n", RED, RESET);
+    printf("%sClaudemods Ubuntu ISO Creator Advanced C Script v1.01%s\n", RED, RESET);
 }
 
 // Utility functions
