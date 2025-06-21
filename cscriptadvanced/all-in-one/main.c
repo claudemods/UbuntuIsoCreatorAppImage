@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <fcntl.h>
 
-#define MAX_PATH PATH_MAX
+#define MAX_PATH 4096
 #define MAX_CMD 16384
 #define BLUE "\033[34m"
 #define GREEN "\033[32m"
@@ -69,11 +69,13 @@ void run_sudo_command(const char *command, const char *password) {
         perror("pipe");
         exit(EXIT_FAILURE);
     }
+
     pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
         exit(EXIT_FAILURE);
     }
+
     if (pid == 0) {
         close(pipefd[1]);
         dup2(pipefd[0], STDIN_FILENO);
@@ -142,7 +144,7 @@ void install_dependencies_ubuntu() {
     "live-tools lvm2 pxelinux syslinux syslinux-common "
     "thin-provisioning-tools squashfs-tools xorriso";
     char command[512];
-    sprintf(command, "sudo apt-get install -y %s", packages);
+    snprintf(command, sizeof(command), "sudo apt-get install -y %s", packages);
     run_command(command);
     message_box("Success", "Dependencies installed successfully.");
 }
@@ -291,15 +293,13 @@ void create_iso() {
 
     char *output_dir = prompt("Enter the output directory path (or press Enter for current directory): ");
     if (!output_dir) {
-        output_dir = malloc(2);
-        strcpy(output_dir, ".");
+        output_dir = strdup(".");
     } else if (strlen(output_dir) == 0) {
         free(output_dir);
-        output_dir = malloc(2);
-        strcpy(output_dir, ".");
+        output_dir = strdup(".");
     }
 
-    char application_dir_path[PATH_MAX];
+    char application_dir_path[MAX_PATH];
     if (getcwd(application_dir_path, sizeof(application_dir_path)) == NULL) {
         perror("getcwd");
         free(iso_name);
@@ -307,8 +307,14 @@ void create_iso() {
         return;
     }
 
-    char build_image_dir[PATH_MAX];
-    snprintf(build_image_dir, sizeof(build_image_dir), "%s/build-image-noble", application_dir_path);
+    char build_image_dir[MAX_PATH];
+    int needed = snprintf(build_image_dir, sizeof(build_image_dir), "%s/build-image-noble", application_dir_path);
+    if (needed >= (int)sizeof(build_image_dir)) {
+        error_box("Error", "Path too long for build directory");
+        free(iso_name);
+        free(output_dir);
+        return;
+    }
 
     // Ensure the output directory exists
     struct stat st;
@@ -327,19 +333,31 @@ void create_iso() {
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H%M", t);
 
-    char iso_file_name[PATH_MAX];
-    snprintf(iso_file_name, sizeof(iso_file_name), "%s/%s_amd64_%s.iso",
-             output_dir, iso_name, timestamp);
+    char iso_file_name[MAX_PATH];
+    needed = snprintf(iso_file_name, sizeof(iso_file_name), "%s/%s_amd64_%s.iso",
+                      output_dir, iso_name, timestamp);
+    if (needed >= (int)sizeof(iso_file_name)) {
+        error_box("Error", "Path too long for ISO filename");
+        free(iso_name);
+        free(output_dir);
+        return;
+    }
 
-    char xorriso_command[PATH_MAX * 2];
-    snprintf(xorriso_command, sizeof(xorriso_command),
-             "xorriso -as mkisofs -o %s -V 2025 -iso-level 3 "
-             "-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin "
-             "-c isolinux/boot.cat -b isolinux/isolinux.bin "
-             "-no-emul-boot -boot-load-size 4 -boot-info-table "
-             "-eltorito-alt-boot -e boot/grub/efi.img "
-             "-no-emul-boot -isohybrid-gpt-basdat %s",
-             iso_file_name, build_image_dir);
+    char xorriso_command[MAX_CMD];
+    needed = snprintf(xorriso_command, sizeof(xorriso_command),
+                      "xorriso -as mkisofs -o \"%s\" -V 2025 -iso-level 3 "
+                      "-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin "
+                      "-c isolinux/boot.cat -b isolinux/isolinux.bin "
+                      "-no-emul-boot -boot-load-size 4 -boot-info-table "
+                      "-eltorito-alt-boot -e boot/grub/efi.img "
+                      "-no-emul-boot -isohybrid-gpt-basdat \"%s\"",
+                      iso_file_name, build_image_dir);
+    if (needed >= (int)sizeof(xorriso_command)) {
+        error_box("Error", "Command too long for buffer");
+        free(iso_name);
+        free(output_dir);
+        return;
+    }
 
     char *sudo_password = prompt("Enter your sudo password: ");
     if (!sudo_password || strlen(sudo_password) == 0) {
@@ -349,15 +367,12 @@ void create_iso() {
         free(sudo_password);
         return;
     }
-
     run_sudo_command(xorriso_command, sudo_password);
     message_box("Success", "ISO creation completed.");
-
     char *choice = prompt("Press 'm' to go back to main menu or Enter to exit: ");
     if (choice && (choice[0] == 'm' || choice[0] == 'M')) {
         run_command("ruby /opt/claudemods-iso-konsole-script/demo.rb");
     }
-
     free(iso_name);
     free(output_dir);
     free(sudo_password);
@@ -381,7 +396,6 @@ void iso_creator_menu() {
         print_blue("3. Back to Main Menu");
         char *choice = prompt("Choose an option: ");
         if (!choice) continue;
-
         if (strcmp(choice, "1") == 0) {
             create_iso();
         } else if (strcmp(choice, "2") == 0) {
@@ -616,10 +630,8 @@ void setup_script_menu() {
         print_blue("2. Edit isolinux.cfg (Noble)");
         print_blue("3. Edit grub.cfg (Noble)");
         print_blue("4. Back to Main Menu");
-
         char *choice = prompt("Choose an option: ");
         if (!choice) continue;
-
         if (strcmp(choice, "1") == 0) {
             generate_initrd_noble();
         } else if (strcmp(choice, "2") == 0) {
@@ -671,8 +683,8 @@ int main(int argc, char *argv[]) {
         print_blue("2. Oracular 24.10 Configuration");
         print_blue("3. SquashFS Creator");
         print_blue("4. ISO Creator");
-        print_blue("5. Command Installer");
-        print_blue("6. Setup Script");
+        print_blue("5. Setup Script");
+        print_blue("6. Command Installer");
         print_blue("7. Exit");
         printf("> ");
         scanf("%d", &choice);
@@ -681,12 +693,11 @@ int main(int argc, char *argv[]) {
             case 2: oracular_menu(); break;
             case 3: squashfs_menu(); break;
             case 4: iso_creator_menu(); break;
-            case 5: command_installer_menu(); break;
-            case 6: setup_script_menu(); break;
+            case 5: setup_script_menu(); break;
+            case 6: command_installer_menu(); break;
             case 7: break;
             default: print_blue("Invalid choice."); break;
         }
     } while (choice != 7);
-
     return 0;
 }
