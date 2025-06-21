@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <termios.h>
 
 #define MAX_PATH 4096
 #define MAX_CMD 16384
@@ -19,36 +20,70 @@
 #define GREEN "\033[32m"
 #define RED "\033[31m"
 #define RESET "\033[0m"
+#define COLOR_CYAN "\033[38;2;36;255;255m"
+#define COLOR_GOLD "\033[33m"
+#define PASSWORD_MAX 100
 
-// ==================== UTILITY FUNCTIONS ====================
-void print_blue(const char *text) {
-    printf(BLUE "%s" RESET "\n", text);
+// Terminal control
+struct termios original_term;
+
+void enable_raw_mode() {
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term);
+    term.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &term);
 }
 
+void disable_raw_mode() {
+    tcsetattr(STDIN_FILENO, TCSANOW, &original_term);
+}
+
+int get_key() {
+    int c = getchar();
+    if (c == '\033') {
+        getchar(); // Skip [
+        return getchar(); // Return actual key code
+    }
+    return c;
+}
+
+// Your exact ASCII banner
+void print_banner() {
+    printf("%s", RED);
+    printf(
+        "░█████╗░██╗░░░░░░█████╗░██╗░░░██╗██████╗░███████╗███╗░░░███╗░█████╗░██████╗░░██████╗\n"
+        "██╔══██╗██║░░░░░██╔══██╗██║░░░██║██╔══██╗██╔════╝████╗░████║██╔══██╗██╔══██╗██╔════╝\n"
+        "██║░░╚═╝██║░░░░░███████║██║░░░██║██║░░██║█████╗░░██╔████╔██║██║░░██║██║░░██║╚█████╗░\n"
+        "██║░░██╗██║░░░░░██╔══██║██║░░░██║██║░░██║██╔══╝░░██║╚██╔╝██║██║░░██║██║░░██║░╚═══██╗\n"
+        "╚█████╔╝███████╗██║░░██║╚██████╔╝██████╔╝███████╗██║░╚═╝░██║╚█████╔╝██████╔╝██████╔╝\n"
+        "░╚════╝░╚══════╝╚═╝░░░░░░╚═════╝░╚═════╝░╚══════╝╚═╝░░░░░╚═╝░╚════╝░╚═════╝░╚═════╝░\n"
+    );
+    printf("%s", RESET);
+    printf("%sClaudemods ISO Creator Advanced C Script v1.01%s\n", RED, RESET);
+}
+
+// Utility functions
+void print_blue(const char *text) { printf("%s%s%s\n", BLUE, text, RESET); }
 void message_box(const char *title, const char *message) {
-    printf(GREEN "%s" RESET "\n", title);
-    printf(GREEN "%s" RESET "\n", message);
+    printf("%s%s%s\n", GREEN, title, RESET);
+    printf("%s%s%s\n", GREEN, message, RESET);
 }
-
 void error_box(const char *title, const char *message) {
-    printf(RED "%s" RESET "\n", title);
-    printf(RED "%s" RESET "\n", message);
+    printf("%s%s%s\n", RED, title, RESET);
+    printf("%s%s%s\n", RED, message, RESET);
 }
-
-void progress_dialog(const char *message) {
-    printf(BLUE "%s" RESET "\n", message);
-}
+void progress_dialog(const char *message) { printf("%s%s%s\n", BLUE, message, RESET); }
 
 void run_command(const char *command) {
-    printf(BLUE "Running command: %s" RESET "\n", command);
+    printf("%sRunning command: %s%s\n", BLUE, command, RESET);
     int status = system(command);
     if (status != 0) {
-        printf(RED "Command failed with exit code: %d" RESET "\n", WEXITSTATUS(status));
+        printf("%sCommand failed with exit code: %d%s\n", RED, WEXITSTATUS(status), RESET);
     }
 }
 
 char* prompt(const char *prompt_text) {
-    printf(BLUE "%s" RESET, prompt_text);
+    printf("%s%s%s", BLUE, prompt_text, RESET);
     char *input = NULL;
     size_t len = 0;
     ssize_t read = getline(&input, &len, stdin);
@@ -63,7 +98,7 @@ char* prompt(const char *prompt_text) {
 }
 
 void run_sudo_command(const char *command, const char *password) {
-    printf(BLUE "Running command: %s" RESET "\n", command);
+    printf("%sRunning command: %s%s\n", BLUE, command, RESET);
     int pipefd[2];
     if (pipe(pipefd) == -1) {
         perror("pipe");
@@ -95,7 +130,7 @@ void run_sudo_command(const char *command, const char *password) {
         if (WIFEXITED(status)) {
             int exit_code = WEXITSTATUS(status);
             if (exit_code != 0) {
-                printf(RED "Command failed with exit code %d." RESET "\n", exit_code);
+                printf("%sCommand failed with exit code %d.%s\n", RED, exit_code, RESET);
             }
         }
     }
@@ -120,18 +155,23 @@ char* get_kernel_version() {
     return version;
 }
 
-void print_banner() {
-    printf(RED);
-    printf(
-        "░█████╗░██╗░░░░░░█████╗░██╗░░░██╗██████╗░███████╗███╗░░░███╗░█████╗░██████╗░░██████╗\n"
-        "██╔══██╗██║░░░░░██╔══██╗██║░░░██║██╔══██╗██╔════╝████╗░████║██╔══██╗██╔══██╗██╔════╝\n"
-        "██║░░╚═╝██║░░░░░███████║██║░░░██║██║░░██║█████╗░░██╔████╔██║██║░░██║██║░░██║╚█████╗░\n"
-        "██║░░██╗██║░░░░░██╔══██║██║░░░██║██║░░██║██╔══╝░░██║╚██╔╝██║██║░░██║██║░░██║░╚═══██╗\n"
-        "╚█████╔╝███████╗██║░░██║╚██████╔╝██████╔╝███████╗██║░╚═╝░██║╚█████╔╝██████╔╝██████╔╝\n"
-        "░╚════╝░╚══════╝╚═╝░░░░░░╚═════╝░╚═════╝░╚══════╝╚═╝░░░░░╚═╝░╚════╝░╚═════╝░╚═════╝░\n"
-    );
-    printf(RESET);
-    printf(RED "Claudemods ISO Creator Advanced C Script v1.01" RESET "\n");
+// Menu display function
+int show_menu(const char *title, const char *items[], int count, int selected) {
+    system("clear");
+    print_banner();
+
+    printf("%s  %s%s\n", COLOR_CYAN, title, RESET);
+    printf("%s  %.*s%s\n", COLOR_CYAN, (int)strlen(title), "----------------", RESET);
+
+    for (int i = 0; i < count; i++) {
+        if (i == selected) {
+            printf("%s➤ %s%s\n\n", COLOR_GOLD, items[i], RESET);
+        } else {
+            printf("%s  %s%s\n\n", COLOR_CYAN, items[i], RESET);
+        }
+    }
+
+    return get_key();
 }
 
 // ==================== ISO CONFIGURATOR FUNCTIONS ====================
@@ -238,47 +278,50 @@ void delete_clone_system_temp(void) {
 }
 
 void squashfs_menu() {
-    char cwd[MAX_PATH];
-    if (!getcwd(cwd, sizeof(cwd))) {
-        perror("getcwd failed");
-        return;
-    }
-    printf("Kernel version: %s\n", get_kernel_version());
-    printf("Current directory: %s\n", cwd);
-    const char* clone_dir = "clone_system_temp";
-    printf("Temporary clone directory: %s\n", clone_dir);
-    printf("Select an option:\n");
-    printf("1. Max compression (xz)\n");
-    printf("2. Create SquashFS from clone_system_temp\n");
-    printf("3. Delete clone_system_temp and SquashFS image\n");
-    printf("4. Back to Main Menu\n");
-    int choice;
-    if (scanf("%d", &choice) != 1) {
-        fprintf(stderr, "Invalid input\n");
-        return;
-    }
-    switch (choice) {
-        case 1:
-            if (!dir_exists(clone_dir)) {
-                clone_system(clone_dir);
-            }
-            create_squashfs_image();
-            break;
-        case 2:
-            if (!dir_exists(clone_dir)) {
-                fprintf(stderr, "Error: clone_system_temp doesn't exist\n");
-                return;
-            }
-            create_squashfs_image();
-            break;
-        case 3:
-            delete_clone_system_temp();
-            break;
-        case 4:
-            return;
-        default:
-            fprintf(stderr, "Invalid choice.\n");
-            break;
+    const char *items[] = {
+        "Max compression (xz)",
+        "Create SquashFS from clone_system_temp",
+        "Delete clone_system_temp and SquashFS image",
+        "Back to Main Menu"
+    };
+    int selected = 0;
+    int key;
+
+    while (1) {
+        key = show_menu("SquashFS Creator", items, 4, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 3) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0:
+                        if (!dir_exists("clone_system_temp")) {
+                            clone_system("clone_system_temp");
+                        }
+                        create_squashfs_image();
+                        break;
+                    case 1:
+                        if (!dir_exists("clone_system_temp")) {
+                            error_box("Error", "clone_system_temp doesn't exist");
+                            break;
+                        }
+                        create_squashfs_image();
+                        break;
+                    case 2:
+                        delete_clone_system_temp();
+                        break;
+                    case 3:
+                        return;
+                }
+                printf("\nPress Enter to continue...");
+                while (getchar() != '\n');
+                break;
+        }
     }
 }
 
@@ -387,27 +430,37 @@ void run_iso_in_qemu() {
 }
 
 void iso_creator_menu() {
+    const char *items[] = {
+        "Create ISO",
+        "Run ISO in QEMU",
+        "Back to Main Menu"
+    };
+    int selected = 0;
+    int key;
+
     while (1) {
-        printf("\033[H\033[J");
-        print_banner();
-        print_blue("ISO Creator Menu:");
-        print_blue("1. Create ISO");
-        print_blue("2. Run ISO in QEMU");
-        print_blue("3. Back to Main Menu");
-        char *choice = prompt("Choose an option: ");
-        if (!choice) continue;
-        if (strcmp(choice, "1") == 0) {
-            create_iso();
-        } else if (strcmp(choice, "2") == 0) {
-            run_iso_in_qemu();
-        } else if (strcmp(choice, "3") == 0) {
-            printf("Returning to main menu...\n");
-            free(choice);
-            break;
-        } else {
-            printf("Invalid choice. Please try again.\n");
+        key = show_menu("ISO Creator Menu", items, 3, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 2) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0:
+                        create_iso();
+                        break;
+                    case 1:
+                        run_iso_in_qemu();
+                        break;
+                    case 2:
+                        return;
+                }
+                break;
         }
-        free(choice);
     }
 }
 
@@ -531,7 +584,7 @@ void create_command_files() {
     run_command("rm -f setup-script");
     run_command("rm -f make-iso");
     run_command("rm -f make-squashfs");
-    printf(GREEN "Activated! You can now use all commands in your terminal." RESET "\n");
+    printf("%sActivated! You can now use all commands in your terminal.%s\n", GREEN, RESET);
 }
 
 void remove_command_files() {
@@ -541,163 +594,229 @@ void remove_command_files() {
     run_command("sudo rm -f /usr/bin/setup-script");
     run_command("sudo rm -f /usr/bin/make-iso");
     run_command("sudo rm -f /usr/bin/make-squashfs");
-    printf(GREEN "Commands deactivated and removed from system." RESET "\n");
+    printf("%sCommands deactivated and removed from system.%s\n", GREEN, RESET);
 }
 
 void command_installer_menu() {
+    const char *items[] = {
+        "Activate terminal commands",
+        "Deactivate terminal commands",
+        "Back to Main Menu"
+    };
+    int selected = 0;
+    int key;
+
     while (1) {
-        printf("\n");
-        print_blue("Command Installer Menu:");
-        print_blue("1. Activate terminal commands");
-        print_blue("2. Deactivate terminal commands");
-        print_blue("3. Back to Main Menu");
-        char *choice = prompt("Choose an option: ");
-        if (!choice) continue;
-        if (strcmp(choice, "1") == 0) {
-            create_command_files();
-        } else if (strcmp(choice, "2") == 0) {
-            remove_command_files();
-        } else if (strcmp(choice, "3") == 0) {
-            free(choice);
-            break;
-        } else {
-            error_box("Error", "Invalid choice");
+        key = show_menu("Command Installer Menu", items, 3, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 2) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0:
+                        create_command_files();
+                        break;
+                    case 1:
+                        remove_command_files();
+                        break;
+                    case 2:
+                        return;
+                }
+                printf("\nPress Enter to continue...");
+                while (getchar() != '\n');
+                break;
         }
-        free(choice);
     }
 }
 
 // ==================== DISTRO CONFIGURATION MENUS ====================
 void noble_menu() {
-    int choice;
-    do {
-        printf("\033[H\033[J");  // Clear screen
-        print_banner();
-        print_blue("\nChoose your Noble 24.04 action:");
-        print_blue("1. Install Dependencies");
-        print_blue("2. Copy vmlinuz");
-        print_blue("3. Generate Initrd");
-        print_blue("4. Edit grub.cfg");
-        print_blue("5. Edit isolinux.cfg");
-        print_blue("6. Back to Main Menu");
-        printf("> ");
-        scanf("%d", &choice);
-        switch (choice) {
-            case 1: install_dependencies_ubuntu(); break;
-            case 2: copy_vmlinuz_noble(); break;
-            case 3: generate_initrd_noble(); break;
-            case 4: edit_grub_cfg_noble(); break;
-            case 5: edit_isolinux_cfg_noble(); break;
-            case 6: return;
-            default: print_blue("Invalid choice."); break;
+    const char *items[] = {
+        "Install Dependencies",
+        "Copy vmlinuz",
+        "Generate Initrd",
+        "Edit grub.cfg",
+        "Edit isolinux.cfg",
+        "Back to Main Menu"
+    };
+    int selected = 0;
+    int key;
+
+    while (1) {
+        key = show_menu("Noble 24.04 Configuration", items, 6, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 5) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0: install_dependencies_ubuntu(); break;
+                    case 1: copy_vmlinuz_noble(); break;
+                    case 2: generate_initrd_noble(); break;
+                    case 3: edit_grub_cfg_noble(); break;
+                    case 4: edit_isolinux_cfg_noble(); break;
+                    case 5: return;
+                }
+                printf("\nPress Enter to continue...");
+                while (getchar() != '\n');
+                break;
         }
-    } while (choice != 6);
+    }
 }
 
 void oracular_menu() {
-    int choice;
-    do {
-        printf("\033[H\033[J");  // Clear screen
-        print_banner();
-        print_blue("\nChoose your Oracular 24.10 action:");
-        print_blue("1. Install Dependencies");
-        print_blue("2. Copy vmlinuz");
-        print_blue("3. Generate Initrd");
-        print_blue("4. Edit grub.cfg");
-        print_blue("5. Edit isolinux.cfg");
-        print_blue("6. Back to Main Menu");
-        printf("> ");
-        scanf("%d", &choice);
-        switch (choice) {
-            case 1: install_dependencies_ubuntu(); break;
-            case 2: copy_vmlinuz_oracular(); break;
-            case 3: generate_initrd_oracular(); break;
-            case 4: edit_grub_cfg_oracular(); break;
-            case 5: edit_isolinux_cfg_oracular(); break;
-            case 6: return;
-            default: print_blue("Invalid choice."); break;
+    const char *items[] = {
+        "Install Dependencies",
+        "Copy vmlinuz",
+        "Generate Initrd",
+        "Edit grub.cfg",
+        "Edit isolinux.cfg",
+        "Back to Main Menu"
+    };
+    int selected = 0;
+    int key;
+
+    while (1) {
+        key = show_menu("Oracular 24.10 Configuration", items, 6, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 5) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0: install_dependencies_ubuntu(); break;
+                    case 1: copy_vmlinuz_oracular(); break;
+                    case 2: generate_initrd_oracular(); break;
+                    case 3: edit_grub_cfg_oracular(); break;
+                    case 4: edit_isolinux_cfg_oracular(); break;
+                    case 5: return;
+                }
+                printf("\nPress Enter to continue...");
+                while (getchar() != '\n');
+                break;
         }
-    } while (choice != 6);
+    }
 }
 
 // ==================== SETUP SCRIPT MENU ====================
 void setup_script_menu() {
+    const char *items[] = {
+        "Generate initcpio configuration (Noble)",
+        "Edit isolinux.cfg (Noble)",
+        "Edit grub.cfg (Noble)",
+        "Back to Main Menu"
+    };
+    int selected = 0;
+    int key;
+
     while (1) {
-        printf("\033[H\033[J");  // Clear screen
-        print_banner();
-        print_blue("Setup Script Menu:");
-        print_blue("1. Generate initcpio configuration (Noble)");
-        print_blue("2. Edit isolinux.cfg (Noble)");
-        print_blue("3. Edit grub.cfg (Noble)");
-        print_blue("4. Back to Main Menu");
-        char *choice = prompt("Choose an option: ");
-        if (!choice) continue;
-        if (strcmp(choice, "1") == 0) {
-            generate_initrd_noble();
-        } else if (strcmp(choice, "2") == 0) {
-            edit_isolinux_cfg_noble();
-        } else if (strcmp(choice, "3") == 0) {
-            edit_grub_cfg_noble();
-        } else if (strcmp(choice, "4") == 0) {
-            free(choice);
-            break;
-        } else {
-            print_blue("Invalid choice.");
+        key = show_menu("Setup Script Menu", items, 4, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 3) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0: generate_initrd_noble(); break;
+                    case 1: edit_isolinux_cfg_noble(); break;
+                    case 2: edit_grub_cfg_noble(); break;
+                    case 3: return;
+                }
+                printf("\nPress Enter to continue...");
+                while (getchar() != '\n');
+                break;
         }
-        free(choice);
     }
 }
 
 // ==================== MAIN MENU ====================
 int main(int argc, char *argv[]) {
+    // Save original terminal settings
+    tcgetattr(STDIN_FILENO, &original_term);
+    enable_raw_mode();
+
     // Handle command line invocation
     if (argc > 1) {
         if (strcmp(argv[1], "3") == 0) {
             iso_creator_menu();
+            disable_raw_mode();
             return 0;
         } else if (strcmp(argv[1], "4") == 0) {
             squashfs_menu();
+            disable_raw_mode();
             return 0;
         } else if (strcmp(argv[1], "5") == 0) {
             generate_initrd_noble();
+            disable_raw_mode();
             return 0;
         } else if (strcmp(argv[1], "6") == 0) {
             edit_isolinux_cfg_noble();
+            disable_raw_mode();
             return 0;
         } else if (strcmp(argv[1], "7") == 0) {
             edit_grub_cfg_noble();
+            disable_raw_mode();
             return 0;
         } else if (strcmp(argv[1], "8") == 0) {
             setup_script_menu();
+            disable_raw_mode();
             return 0;
         }
     }
 
     // Normal menu operation
-    int choice;
-    do {
-        printf("\033[H\033[J");  // Clear screen
-        print_banner();
-        print_blue("\n=== Main Menu ===");
-        print_blue("1. Noble 24.04 Configuration");
-        print_blue("2. Oracular 24.10 Configuration");
-        print_blue("3. SquashFS Creator");
-        print_blue("4. ISO Creator");
-        print_blue("5. Setup Script");
-        print_blue("6. Command Installer");
-        print_blue("7. Exit");
-        printf("> ");
-        scanf("%d", &choice);
-        switch (choice) {
-            case 1: noble_menu(); break;
-            case 2: oracular_menu(); break;
-            case 3: squashfs_menu(); break;
-            case 4: iso_creator_menu(); break;
-            case 5: setup_script_menu(); break;
-            case 6: command_installer_menu(); break;
-            case 7: break;
-            default: print_blue("Invalid choice."); break;
+    const char *items[] = {
+        "Noble 24.04 Configuration",
+        "Oracular 24.10 Configuration",
+        "SquashFS Creator",
+        "ISO Creator",
+        "Setup Script",
+        "Command Installer",
+        "Exit"
+    };
+    int selected = 0;
+    int key;
+
+    while (1) {
+        key = show_menu("Main Menu", items, 7, selected);
+
+        switch (key) {
+            case 'A': // Up arrow
+                if (selected > 0) selected--;
+                break;
+            case 'B': // Down arrow
+                if (selected < 6) selected++;
+                break;
+            case '\n': // Enter
+                switch (selected) {
+                    case 0: noble_menu(); break;
+                    case 1: oracular_menu(); break;
+                    case 2: squashfs_menu(); break;
+                    case 3: iso_creator_menu(); break;
+                    case 4: setup_script_menu(); break;
+                    case 5: command_installer_menu(); break;
+                    case 6:
+                        disable_raw_mode();
+                        return 0;
+                }
+                break;
         }
-    } while (choice != 7);
-    return 0;
+    }
 }
