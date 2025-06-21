@@ -53,7 +53,9 @@
 
 </div>
 
-this project is open source though i have now terminated updates and will continue newer updates in my multi iso creator
+this project is open source though i have now terminated updates 
+
+i will continue newer updates in my multi iso creator
 
 build dependencies needed to install libreadline6-dev and libncurses-dev
 
